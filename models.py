@@ -8,9 +8,10 @@ def expx(x, a, b, c):
 
 def model_1(x, a, b, c, d, e):
     n, k = x
+    tb = b*n
     te = e*k
     td = d/np.exp(te)
-    ta = a*np.cos(b*np.log(n))
+    ta = a*np.log(tb)
     tc = c+ta+td
     return tc
     
@@ -22,18 +23,30 @@ def M_1(n, k):
     e = 0.31129515
     return model_1((n,k), a, b, c, d, e)
 
+
+def S_1(n, k):
+    a = 0.03452225
+    b = 0.92507561
+    c = 0.18967811
+    d = 1.22202939
+    e = 0.30130025
+    return model_1((n,k), a, b, c, d, e)
+
+
 def model_2(x, a, b, c, d, e, f, g):
     n, k = x
+    bn = b*n
     ck = c*k
     en = e*n
-    albn = a*np.cos(b*np.log(n))
-    dlen = d*np.cos(e*np.log(n))
+    albn = a*np.log(bn)
+    dlen = d*np.log(en)
     eck = np.exp(ck)
     t1 = albn/eck
     t2 = dlen
     t3 = f/eck
     t4 = g
     return t1+t2+t3+t4
+    
     
 def M_2(n, k):
     a = 0.5950798
@@ -45,14 +58,28 @@ def M_2(n, k):
     g = -0.22447648
     return model_2((n,k), a, b, c, d, e, f, g)
 
+
+def S_2(n, k):
+    a = -6.40196224e-02
+    b = 1.00278958e+00
+    c = 2.97982577e-01
+    d = 4.32116618e-02
+    e = 3.47735365e+01
+    f = 1.61551054e+00
+    g = -2.21250089e-02
+    return model_2((n,k), a, b, c, d, e, f, g)
+    
+    
 def model_3(x, a, b, c, d):
     n, k = x
+    bn = b*n
     ck = c*k
-    albn = a*np.cos(b*np.log(n))
+    albn = a*np.log(bn)
     eck = np.exp(ck)
     t1 = albn/eck
     t2 = d
     return t1+t2
+
 
 def M_3(n, k):
     a = 1.08329634
@@ -61,14 +88,24 @@ def M_3(n, k):
     d = 1.68079096
     return model_3((n,k), a, b, c, d)
 
+
+def S_3(n, k):
+    a = 5.69262827e-02
+    b = 3.07801334e+06
+    c = 2.95075272e-01
+    d = 4.00871794e-01
+    return model_3((n,k), a, b, c, d)
+    
+    
 def model_4(x, xa, ya, xb, yb, xc, yc, ax, bx, ay, by, az, bz):
     n, k = x
-    t1 = xa*np.cos(xb*np.log(n))/np.exp(ya*k)
+    t1 = xa*np.log(xb*n)/np.exp(ya*k)
     t2 = xa*yb*k/np.exp(ya*k)
     t3 = xc/np.exp(yc*k)
-    t4 = ax*np.cos(bx*np.log(n))/np.power(by*n, ay*k)
-    t5 = az*np.cos(bz*np.log(n))
+    t4 = ax*np.log(bx*n)/np.power(by*n, ay*k)
+    t5 = az*np.log(bz*n)
     return t1-t2+t3+t4+t5
+
 
 def M_4(n, k):
     xa = 6.45905993e-01
@@ -84,3 +121,10 @@ def M_4(n, k):
     az = 3.46738306e-01
     bz = 5.78073547e-01
     return model_4((n,k), xa, ya, xb, yb, xc, yc, ax, bx, ay, by, az, bz)
+
+
+Ms = [M_1, M_2, M_3, M_4]
+Ss = [S_1, S_2, S_3]
+
+def prediction(n, k):
+    return (M_2(n,k),S_1(n,k))

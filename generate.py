@@ -1,13 +1,9 @@
 from statistics import mean
 from igraph import Graph
 from scipy.stats import norm
+from helpers import frequencies
 import numpy as np
 
-
-def frequencies(nodes, edges):
-    g = Graph.Establishment(nodes, edges, [1], [[1]])
-    spl = g.shortest_paths_dijkstra()
-    return [sum([ll.count(_) for ll in spl])/(nodes*nodes) for _ in range(max(map(max, spl)))]
 
 # Number of runs per parameter combination
 runs = range(100)
