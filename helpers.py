@@ -4,14 +4,74 @@ import numpy as np
 from igraph import Graph
 
 
-def discretize_pointwise(dist, start=0, threshold=0.01, minvalue=0.95):
+def determine_pt(n, k):
+    from models import prediction
+    from scipy. stats import norm
+    mu, si = prediction(n,k)
+    dist = norm(mu, si)
+    
+    prepared_values = [1/n, k*(2*n-k-1)/n**2]
+    f = discretize_pointwise(dist, startvalues=prepared_values)
+    
+    from functools import lru_cache
+    
+    @lru_cache(maxsize=None)
+    def ffrak(i,t):
+        if i >= t:
+            return 0.0 # virtual extension of the probabilities
+        return f[i]/sum(f[:t]) # sum(f[:t]) = sum of f(0), f(1), ..., f(t-1)
+        
+    from IPython.display import display, Markdown
+    
+    @lru_cache(maxsize=None)
+    def ffrak_prime(i,t):
+        if t >= len(f): # len(f)-1 is the last desired state
+            return ffrak(i,t)
+        elif i>=t:
+            return 0.0
+        else:
+            chi = sum([ffrak(j, t) - ffrak_prime(j, t) for j in range(i+1,t+1)])
+            delta = ffrak_prime(t,t+1) - ffrak(i,t) + sum([ffrak_prime(j,t+1) - ffrak_prime(j, t) for j in range(i+1,t)])
+            display(Markdown(f"$ f'_{t}({i}) = f_{t}(i) + max(\\left( \\sum_{{j={i+1} }}^{t}f_{t}(j)-f'_{t}(j)\\right),\\left(f'_{t+1}({t}) + \\sum_{{j={i+1} }}^{t-1} (f'_{t+1}(j) - f'_{t}(j)) - f_{t}({i})\\right)) = {ffrak(i,t)} + max({chi},{delta}) = = {ffrak(i,t)+max(chi,delta):.3f} $"))
+            return ffrak(i,t) + max(chi,delta)
+    
+    @lru_cache(maxsize=None)
+    def p(h,t,f):
+        if t == 1:
+            display(Markdown(f"$p_{t}({h}) = 1-f_{t+1}({h}) = {1-f(h,t+1)}$"))
+            return 1-f(0,t+1)
+        if h == 0:
+            display(Markdown(f"$p_{t}({h}) = 1-\\frac{{f_{t+1}(0)}}{{f_{t}(0)}} = 1-\\frac{{{f(0,t+1)} }}{{ {f(0,t)}}} = {1-(f(0,t+1)/f(0,t))}$\n"))
+            return 1-(f(0,t+1)/f(0,t))
+        else:
+            display(Markdown(f"$p_{t}({h}) = 1- \\frac{{f_{t+1}({h}) - p_{t}({h-1}) * f_{t}({h-1}) }} {{ f_{t}({h}) }} = 1-\\frac{{ ({f(h,t+1)} - {p(h-1,t,f)} * {f(h-1,t)}) }}{{ {f(h,t)} }} = {1-(f(h,t+1) - p(h-1,t,f) * f(h-1,t))/f(h,t)}$\n"))
+            return 1-(f(h,t+1) - p(h-1,t,f) * f(h-1,t))/f(h,t)
+    
+    forig = []
+    for t in range(len(f)+1):
+        forig.append([ffrak(h,t) for h in range(t)])
+
+    fprime = []
+    for t in range(len(f)+1):
+        fprime.append([ffrak_prime(h,t) for h in range(t)])
+        
+    pts = []
+    for t in range(1, len(f)): # 1, 2, ..., len(f)-1
+        pts.append(([p(h,t,ffrak_prime) for h in range(t)])) # p1(0), p2(0)+p2(1), ...
+    
+    return pts,forig,fprime
+
+
+def discretize_pointwise(dist, startvalues=[], threshold=0.01, minvalue=0.95):
     a = []
-    i = start
+    a.extend(startvalues)
+    i = len(startvalues)
     while True:
         a.append(dist.pdf(i))
         i += 1
         if dist.pdf(i) < threshold and sum(a) > minvalue:
             return a/sum(a)
+
 
 def discretize_intervals(dist, start=0, threshold=0.01, halfstart=True):
     a = []
