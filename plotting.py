@@ -20,6 +20,7 @@ def plot_3d_fit(data, curves, titles):
         ax.scatter(data["nodes"],data["edges"], data["mu_means"])
         ax.set_xlabel("Network Size")
         ax.set_ylabel("# Edges")
+        ax.set_zlabel("Mu")
         surf = ax.plot_surface(NsMG, KsMG, curve(NsMG, KsMG), cmap=cm.coolwarm, antialiased=False)
     plt.show()
 
