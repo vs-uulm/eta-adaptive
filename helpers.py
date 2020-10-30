@@ -137,6 +137,13 @@ def e_survival(x):
     return y
     
     
+def bias(data, model, dimension="mu_means"):
+    error = []
+    for n,e,v in zip(data["nodes"], data["edges"], data[dimension]):
+        error.append((model(n, e)-v))
+    return error
+    
+    
 def asqe(data, model, dimension="mu_means"):
     error = []
     for n,e,v in zip(data["nodes"], data["edges"], data[dimension]):
