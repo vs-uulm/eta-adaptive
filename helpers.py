@@ -2,6 +2,27 @@ from statistics import mean
 import pickle
 import numpy as np
 from igraph import Graph
+from scipy.special import binom 
+import math
+
+
+def packaged_coupons_expected(n, c, a):
+    n_ov_c = binom(n,c)
+    logc_na = math.ceil(math.log(n-a,c))
+    #print(f"log_{c}({n}-{a}) = {logc_na}")
+    #print(f"({n} {c}) = n_ov_c")
+    tmp = 0
+    for j in range(logc_na):
+        a_ov_j = binom(a,j)
+        t1 = (-1)**(logc_na-j+1)
+        t2 = binom(n,c) - binom(n-a+j,c)
+        t3 = binom(a-j-1, a-logc_na)
+        tmp += t1/t2*a_ov_j*t3
+    return n_ov_c*tmp
+
+def tree_depth_bound(n, eta, beta):
+    z = packaged_coupons_expected(n,eta,n*beta)
+    return math.log(1-(z-1)*(1-eta)/(eta+1), eta)+1
 
 
 def determine_pt(n, k):
